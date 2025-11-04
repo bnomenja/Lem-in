@@ -26,6 +26,7 @@ type Room struct {
 	Name  string
 	Coord Position
 	Links map[string]*Room
+	Used  bool
 }
 
 type Position struct {
