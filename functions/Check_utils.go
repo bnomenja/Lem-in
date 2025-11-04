@@ -15,9 +15,11 @@ type Farm struct {
 }
 
 type Edge struct {
-	From   string
-	To     string
-	Weight int
+	From    string
+	To      string
+	Weight  int
+	Blocked bool
+	Special bool
 }
 
 type Path []string
@@ -35,7 +37,7 @@ type Position struct {
 }
 
 type Ant struct {
-	Name     string
+	Id       int
 	Path     Path
 	Position int
 	Finished bool

@@ -1,160 +1,125 @@
 package functions
 
-// import (
-// 	"fmt"
-// 	"sort"
-// 	"strings"
-// )
+import (
+	"sort"
+)
 
-// func findBetterChoice(best, shortest []Path, antNumber int) ([]Path, []int) {
-// 	assignedShort, shortTurn := calculateTurns(shortest, antNumber)
-// 	assigned, turn := calculateTurns(best, antNumber)
+func calculateTurns(paths []Path, antNumber int) ([]int, int) {
+	sort.Slice(paths, func(i, j int) bool {
+		return len(paths[i]) < len(paths[j])
+	})
 
-// 	if shortTurn <= turn {
-// 		fmt.Println(shortTurn)
-// 		return shortest, assignedShort
-// 	}
+	assigned := assignAnts(paths, antNumber)
 
-// 	fmt.Println(turn)
+	maxTurn := 0
+	for i := range paths {
+		turn := len(paths[i]) - 1 + assigned[i]
+		if turn > maxTurn {
+			maxTurn = turn
+		}
+	}
 
-// 	return best, assigned
-// }
+	return assigned, maxTurn
+}
 
-// func calculateTurns(paths []Path, antNumber int) ([]int, int) {
-// 	sort.Slice(paths, func(i, j int) bool {
-// 		return len(paths[i]) < len(paths[j])
-// 	})
+func assignAnts(paths []Path, antNumber int) []int {
+	pathLen := make([]int, len(paths))
 
-// 	assigned := assignAnts(paths, antNumber)
+	for i, path := range paths {
+		pathLen[i] = len(path)
+	}
 
-// 	maxTurn := 0
-// 	for i := range paths {
-// 		turn := len(paths[i]) - 1 + assigned[i]
-// 		if turn > maxTurn {
-// 			maxTurn = turn
-// 		}
-// 	}
+	assigned := make([]int, len(paths))
+	antsLeft := antNumber
 
-// 	return assigned, maxTurn
-// }
+	for antsLeft > 0 {
+		target := findMinLoadPath(pathLen, assigned)
+		assigned[target]++
+		antsLeft--
+	}
 
-// func buildUsedLinks(farm *Farm) map[string][]string {
-// 	links := make(map[string][]string)
+	return assigned
+}
 
-// 	for name, edge := range farm.Edges {
-// 		if edge.Capacity == 0 {
-// 			parts := strings.Split(name, "-")
-// 			from, to := parts[0], parts[1]
-// 			links[from] = append(links[from], to)
-// 		}
-// 	}
+func findMinLoadPath(pathLen, assigned []int) int {
+	target := 0
+	lowest := pathLen[0] + assigned[0]
 
-// 	return links
-// }
+	for i := 1; i < len(pathLen); i++ {
+		load := pathLen[i] + assigned[i]
+		if load <= lowest {
+			target = i
+			lowest = load
+		}
+	}
 
-// func reconstructPaths(links map[string][]string, start, end string, pathNumber int) []Path {
-// 	paths := []Path{}
-// 	used := make(map[string]bool)
+	return target
+}
 
-// 	for i := 0; i < pathNumber; i++ {
-// 		path := Path{start}
-// 		current := start
+func BlockUselessEdges(farm *Farm, paths []Path) {
+	used := map[string]bool{}
+	for _, path := range paths {
+		for i := range path[:len(path)-2] {
+			from := path[i]
+			to := path[i+1]
+			key := from + "-" + to
+			reverseKey := to + "-" + from
 
-// 		for current != end {
-// 			found := false
-// 			for _, to := range links[current] {
-// 				tunnel := current + "-" + to
+			if used[reverseKey] {
+				newEdge := Edge{
+					From:    from,
+					To:      to,
+					Weight:  1,
+					Blocked: true,
+				}
+				newReverse := Edge{
+					From:    to,
+					To:      from,
+					Weight:  1,
+					Blocked: true,
+				}
+				farm.Edges[key] = newEdge
+				farm.Edges[reverseKey] = newReverse
+				continue
+			}
+			used[key] = true
+		}
+	}
+}
 
-// 				if !used[tunnel] {
-// 					used[tunnel] = true
-// 					path = append(path, to)
-// 					current = to
-// 					found = true
-// 					break
-// 				}
-// 			}
+func (queue *queue) Add(room Node) {
+	*queue = append(*queue, room)
+	sort.Slice(*queue, func(i, j int) bool {
+		return (*queue)[i].Priority < (*queue)[j].Priority
+	})
+}
 
-// 			if !found {
-// 				break
-// 			}
-// 		}
+func (queue *queue) Pop() Node {
+	room := (*queue)[0]
+	*queue = (*queue)[1:]
+	return room
+}
 
-// 		path = path[1:]
-// 		paths = append(paths, path)
-// 	}
+func buildPathfromParent(parent map[string]string, start, end string) Path {
+	path := Path{}
+	for current := end; current != ""; current = parent[current] {
+		path = append(Path{current}, path...)
+		if current == start {
+			break
+		}
+	}
+	return path
+}
 
-// 	return paths
-// }
-
-// func assignAnts(paths []Path, antNumber int) []int {
-// 	pathLen := make([]int, len(paths))
-
-// 	for i, path := range paths {
-// 		pathLen[i] = len(path)
-// 	}
-
-// 	assigned := make([]int, len(paths))
-// 	antsLeft := antNumber
-
-// 	for antsLeft > 0 {
-// 		target := findMinLoadPath(pathLen, assigned)
-// 		assigned[target]++
-// 		antsLeft--
-// 	}
-
-// 	return assigned
-// }
-
-// func findMinLoadPath(pathLen, assigned []int) int {
-// 	target := 0
-// 	lowest := pathLen[0] + assigned[0]
-
-// 	for i := 1; i < len(pathLen); i++ {
-// 		load := pathLen[i] + assigned[i]
-// 		if load <= lowest {
-// 			target = i
-// 			lowest = load
-// 		}
-// 	}
-
-// 	return target
-// }
-
-// func updateOneEdge(from, to string, farm *Farm) {
-// 	forwardKey := from + "-" + to
-// 	reverseKey := to + "-" + from
-
-// 	forward := farm.Edges[forwardKey]
-// 	forward.Capacity--
-// 	farm.Edges[forwardKey] = forward
-
-// 	reverse := farm.Edges[reverseKey]
-// 	reverse.Capacity++
-// 	farm.Edges[reverseKey] = reverse
-// }
-
-// func buildPathFromParents(parent map[string]string, start, end string) Path {
-// 	path := Path{}
-// 	for room := end; room != ""; room = parent[room] {
-// 		path = append([]string{room}, path...)
-// 		if room == start {
-// 			break
-// 		}
-// 	}
-// 	return path
-// }
-
-// func exploreNeighbors(farm *Farm, current string, visited map[string]bool, parent map[string]string, queue *[]string) {
-// 	for _, neighbor := range farm.Rooms[current].Links {
-// 		if visited[neighbor.Name] {
-// 			continue
-// 		}
-
-// 		edgeKey := current + "-" + neighbor.Name
-// 		if farm.Edges[edgeKey].Capacity > 0 {
-// 			visited[neighbor.Name] = true
-// 			parent[neighbor.Name] = current
-// 			*queue = append(*queue, neighbor.Name)
-// 		}
-// 	}
-// }
+func HasDuplicateRoomAcrossPaths(paths []Path) bool {
+	seen := make(map[string]int)
+	for i, path := range paths {
+		for _, room := range path[:len(path)-1] {
+			if prev, exists := seen[room]; exists && prev != i {
+				return true
+			}
+			seen[room] = i
+		}
+	}
+	return false
+}

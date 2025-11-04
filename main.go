@@ -26,15 +26,17 @@ func main() {
 		return
 	}
 
-	paths := functions.Suurballe(&farm)
-	if len(paths) == 0 {
+	paths, assigned := functions.Suurballe(&farm)
+	if paths == nil {
 		fmt.Println("not solvable")
 		return
 	}
 
-	
+	functions.MooveAnts(paths, farm.Antnumber, string(data), assigned)
 
-	fmt.Println("\nPaths len: ", len(paths))
+	if functions.HasDuplicateRoomAcrossPaths(paths) {
+		fmt.Println("\nduplicated rooms")
+	}
 
-	fmt.Println("\npaths: ", paths)
+
 }
