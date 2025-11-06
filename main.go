@@ -33,4 +33,5 @@ func main() {
 	}
 
 	functions.MooveAnts(paths, farm.Antnumber, string(data), assigned)
+
 }

@@ -5,7 +5,6 @@ import (
 )
 
 func bfs(farm *Farm, start, end string) []string {
-	visited := map[string]bool{start: true}
 	parent := map[string]string{}
 	queue := []string{start}
 
@@ -18,17 +17,12 @@ func bfs(farm *Farm, start, end string) []string {
 		}
 
 		for _, neighbor := range farm.Rooms[current].Links {
-			if visited[neighbor.Name] {
-				continue
-			}
-
 			edge := farm.Edges[current+"-"+neighbor.Name]
 
 			if edge.State != 0 {
 				continue
 			}
 
-			visited[neighbor.Name] = true
 			parent[neighbor.Name] = current
 			queue = append(queue, neighbor.Name)
 		}
@@ -89,7 +83,7 @@ func Dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string)
 	queue.Add(Node{Name: start, Priority: 0, OnlyReverse: false})
 
 	for len(queue) > 0 {
-		node := queue.Pop()
+		node := queue.Poll()
 		current, Value := node.Name, node.Priority
 
 		if dist[current] < Value {
@@ -117,15 +111,16 @@ func Dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string)
 				if edge.State != -1 && neighbor.Inpath {
 					queue.Add(Node{Name: neighbor.Name, Priority: newdist, OnlyReverse: true})
 					continue
+
 				}
 
 				queue.Add(Node{Name: neighbor.Name, Priority: newdist, OnlyReverse: false})
 			}
 
-			if neighbor.Name == end {
-				return dist, parent
-			}
+		}
 
+		if current == end {
+			return dist, parent
 		}
 
 	}

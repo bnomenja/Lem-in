@@ -15,7 +15,6 @@
 3-4
 3-5
 4-6
-6-4
 5-6
 # 1 ants 1 path 4 steps
 # 3 ants 1 path 6 steps

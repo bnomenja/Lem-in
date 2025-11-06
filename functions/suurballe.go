@@ -64,35 +64,60 @@ func UpdateGraph(farm *Farm, path Path) {
 		if i == len(path)-1 {
 			continue
 		}
-		from, to := path[i], path[i+1]
 
-		if from != farm.SpecialRooms["start"] {
-			room := farm.Rooms[from]
-			room.Inpath = true
-			farm.Rooms[from] = room
+		prev := path[i]
+
+		if i > 0 {
+			prev = path[i-1]
 		}
 
-		edge := farm.Edges[from+"-"+to]
-		reverseEdge := farm.Edges[to+"-"+from]
+		current := path[i]
+		next := path[i+1]
 
-		if edge.State == 1 {
-			edge.State = 0
-			reverseEdge.State = -1
+		currentEdge := farm.Edges[current+"-"+next]
+		prevEdge := farm.Edges[prev+"-"+current]
+		currentRoom := farm.Rooms[current]
 
-			farm.Edges[from+"-"+to] = edge
-			farm.Edges[to+"-"+from] = reverseEdge
+		if current != farm.SpecialRooms["start"] {
+			if prevEdge.State == -1 && currentEdge.State == -1 {
+				currentRoom.Inpath = false
+				farm.Rooms[current] = currentRoom
+			} else {
+				currentRoom.Inpath = true
+				farm.Rooms[current] = currentRoom
+			}
+		}
+	}
+
+	for i := range path {
+		if i == len(path)-1 {
+			continue
+		}
+
+		current := path[i]
+		next := path[i+1]
+		currentEdge := farm.Edges[current+"-"+next]
+		reversedCurrent := farm.Edges[next+"-"+current]
+
+		if currentEdge.State == 1 {
+			currentEdge.State = 0
+			reversedCurrent.State = -1
+
+			farm.Edges[current+"-"+next] = currentEdge
+			farm.Edges[next+"-"+current] = reversedCurrent
 		} else {
-			edge.State = 1
-			reverseEdge.State = 1
+			currentEdge.State = 1
+			reversedCurrent.State = 1
 
-			farm.Edges[from+"-"+to] = edge
-			farm.Edges[to+"-"+from] = reverseEdge
+			farm.Edges[current+"-"+next] = currentEdge
+			farm.Edges[next+"-"+current] = reversedCurrent
 		}
 	}
 }
 
 func FindPaths(farm *Farm, start, end string) Path {
 	dist, parent := Dijkstra(farm, start, end)
+	
 	if dist[end] == math.MaxInt {
 		return nil
 	}

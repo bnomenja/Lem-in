@@ -63,7 +63,7 @@ func (queue *queue) Add(room Node) {
 	})
 }
 
-func (queue *queue) Pop() Node {
+func (queue *queue) Poll() Node {
 	room := (*queue)[0]
 	*queue = (*queue)[1:]
 	return room
