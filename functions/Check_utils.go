@@ -15,20 +15,18 @@ type Farm struct {
 }
 
 type Edge struct {
-	From    string
-	To      string
-	Weight  int
-	Blocked bool
-	Special bool
+	From  string
+	To    string
+	State int
 }
 
 type Path []string
 
 type Room struct {
-	Name  string
-	Coord Position
-	Links map[string]*Room
-	Used  bool
+	Name   string
+	Coord  Position
+	Links  map[string]*Room
+	Inpath bool
 }
 
 type Position struct {
@@ -154,15 +152,15 @@ func addTunnelToFarm(farm *Farm, from, to, line string) error {
 	rB.Links[from] = rA
 
 	farm.Edges[k1] = Edge{
-		From:   from,
-		To:     to,
-		Weight: 1,
+		From:  from,
+		To:    to,
+		State: 1,
 	}
 
 	farm.Edges[k2] = Edge{
-		From:   to,
-		To:     from,
-		Weight: 1,
+		From:  to,
+		To:    from,
+		State: 1,
 	}
 
 	return nil

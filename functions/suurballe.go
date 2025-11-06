@@ -1,13 +1,13 @@
 package functions
 
 import (
-	"fmt"
 	"math"
 )
 
 type Node struct {
-	Name     string
-	Priority int
+	Name        string
+	Priority    int
+	OnlyReverse bool
 }
 
 type queue []Node
@@ -15,89 +15,93 @@ type queue []Node
 func Suurballe(farm *Farm) ([]Path, []int) {
 	start := farm.SpecialRooms["start"]
 	end := farm.SpecialRooms["end"]
-	paths := []Path{}
+	foundShourtest := false
+	shortest := []Path{}
 
 	for {
-		dist, path := FindPaths(farm, start, end)
+		path := FindPaths(farm, start, end)
 		if path == nil {
 			break
 		}
 
-		UpdateGraph(farm, path, dist)
-		paths = append(paths, path)
+		if !foundShourtest {
+			shortest = append(shortest, path)
+			foundShourtest = true
+		}
+
+		UpdateGraph(farm, path)
 	}
 
-	if len(paths) == 0 {
+	if !foundShourtest {
 		return nil, nil
 	}
 
-	shortest := paths[0][1:]
-	paths = MergePaths(paths, farm)
-	fmt.Println(paths)
+	paths := MergePaths(farm, start, end)
 
-	best, assigned := findBetterChoice(paths, []Path{shortest}, farm.Antnumber)
+	best, assigned := findBetterChoice(paths, shortest, farm.Antnumber)
 
 	return best, assigned
 }
 
-func MergePaths(paths []Path, farm *Farm) []Path {
+func MergePaths(farm *Farm, start, end string) []Path {
 	merged := []Path{}
-	BlockUselessEdges(farm, paths)
-
 	for {
-		path := bfs(farm)
+
+		path := dfs(farm, start, end)
 		if path == nil {
 			break
 		}
-		if len(path) == 2 {
-			return []Path{path[1:]}
-		}
-		for _, name := range path[1 : len(path)-1] {
-			room := farm.Rooms[name]
-			room.Used = true
-			farm.Rooms[name] = room
-		}
+
+		UpdateGraph(farm, path)
+
 		merged = append(merged, path[1:])
 	}
 	return merged
 }
 
-func UpdateGraph(farm *Farm, shortest Path, dist map[string]int) {
-	for key, edge := range farm.Edges {
-		from, to := edge.From, edge.To
-		newWeight := edge.Weight + dist[from] - dist[to]
-
-		farm.Edges[key] = Edge{
-			From:    from,
-			To:      to,
-			Weight:  newWeight,
-			Blocked: edge.Blocked,
+func UpdateGraph(farm *Farm, path Path) {
+	for i := range path {
+		if i == len(path)-1 {
+			continue
 		}
-	}
+		from, to := path[i], path[i+1]
 
-	for i := 0; i < len(shortest)-1; i++ {
-		from, to := shortest[i], shortest[i+1]
-		edge := farm.Edges[to+"-"+from]
-		edge.Weight = 0
-		farm.Edges[to+"-"+from] = edge
-		delete(farm.Edges, from+"-"+to)
+		if from != farm.SpecialRooms["start"] {
+			room := farm.Rooms[from]
+			room.Inpath = true
+			farm.Rooms[from] = room
+		}
+
+		edge := farm.Edges[from+"-"+to]
+		reverseEdge := farm.Edges[to+"-"+from]
+
+		if edge.State == 1 {
+			edge.State = 0
+			reverseEdge.State = -1
+
+			farm.Edges[from+"-"+to] = edge
+			farm.Edges[to+"-"+from] = reverseEdge
+		} else {
+			edge.State = 1
+			reverseEdge.State = 1
+
+			farm.Edges[from+"-"+to] = edge
+			farm.Edges[to+"-"+from] = reverseEdge
+		}
 	}
 }
 
-func FindPaths(farm *Farm, start, end string) (map[string]int, Path) {
+func FindPaths(farm *Farm, start, end string) Path {
 	dist, parent := Dijkstra(farm, start, end)
 	if dist[end] == math.MaxInt {
-		return nil, nil
+		return nil
 	}
+
 	path := buildPathfromParent(parent, start, end)
-	return dist, path
+	return path
 }
 
 func findBetterChoice(best, shortest []Path, antNumber int) ([]Path, []int) {
-	if len(shortest[0]) == 1 {
-		return shortest, []int{antNumber}
-	}
-
 	assignedShort, shortTurn := calculateTurns(shortest, antNumber)
 	assigned, turn := calculateTurns(best, antNumber)
 

@@ -56,37 +56,6 @@ func findMinLoadPath(pathLen, assigned []int) int {
 	return target
 }
 
-func BlockUselessEdges(farm *Farm, paths []Path) {
-	used := map[string]bool{}
-	for _, path := range paths {
-		for i := range path[:len(path)-2] {
-			from := path[i]
-			to := path[i+1]
-			key := from + "-" + to
-			reverseKey := to + "-" + from
-
-			if used[reverseKey] {
-				newEdge := Edge{
-					From:    from,
-					To:      to,
-					Weight:  1,
-					Blocked: true,
-				}
-				newReverse := Edge{
-					From:    to,
-					To:      from,
-					Weight:  1,
-					Blocked: true,
-				}
-				farm.Edges[key] = newEdge
-				farm.Edges[reverseKey] = newReverse
-				continue
-			}
-			used[key] = true
-		}
-	}
-}
-
 func (queue *queue) Add(room Node) {
 	*queue = append(*queue, room)
 	sort.Slice(*queue, func(i, j int) bool {

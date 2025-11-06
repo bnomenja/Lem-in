@@ -1,39 +1,49 @@
 package functions
 
-import "math"
+import (
+	"math"
+)
 
-func bfs(farm *Farm) Path {
-	start := farm.SpecialRooms["start"]
-	end := farm.SpecialRooms["end"]
-	parent := map[string]string{}
-	visited := map[string]bool{start: true}
-	queue := []string{start}
+func dfs(farm *Farm, start, end string) []string {
+	current := start
+	path := []string{current}
+	visited := make(map[string]bool)
 
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
-
-		if current == end {
-			return buildPathfromParent(parent, start, end)
-		}
+	for current != end {
+		visited[current] = true
+		foundNext := false
 
 		for _, neighbor := range farm.Rooms[current].Links {
-			key := current + "-" + neighbor.Name
-			if visited[neighbor.Name] || farm.Edges[key].Blocked || neighbor.Used {
+			if visited[neighbor.Name] {
 				continue
 			}
-			parent[neighbor.Name] = current
-			visited[neighbor.Name] = true
-			queue = append(queue, neighbor.Name)
+
+			edge := farm.Edges[current+"-"+neighbor.Name]
+
+			if edge.State != 0 {
+				continue
+			}
+
+			path = append(path, neighbor.Name)
+			current = neighbor.Name
+			foundNext = true
+			break
+		}
+
+		if !foundNext {
+			return nil
 		}
 	}
-	return nil
+
+	if path[len(path)-1] != end {
+		return nil
+	}
+	return path
 }
 
 func Dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string) {
 	dist := make(map[string]int)
 	parent := make(map[string]string)
-	visited := make(map[string]bool)
 
 	for name := range farm.Rooms {
 		dist[name] = math.MaxInt
@@ -41,35 +51,49 @@ func Dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string)
 	dist[start] = 0
 
 	queue := queue{}
-	queue.Add(Node{Name: start, Priority: 0})
+	queue.Add(Node{Name: start, Priority: 0, OnlyReverse: false})
 
 	for len(queue) > 0 {
 		node := queue.Pop()
 		current, Value := node.Name, node.Priority
-		visited[current] = true
 
 		if dist[current] < Value {
 			continue
 		}
 
 		for _, neighbor := range farm.Rooms[current].Links {
-			if visited[neighbor.Name] {
-				continue
-			}
+
 			key := current + "-" + neighbor.Name
-			edge, exists := farm.Edges[key]
-			if !exists {
+			edge := farm.Edges[key]
+
+			if edge.State == 0 {
 				continue
 			}
 
-			newdist := dist[current] + edge.Weight
+			if node.OnlyReverse && edge.State != -1 {
+				continue
+			}
+
+			newdist := dist[current] + edge.State
 			if newdist < dist[neighbor.Name] {
 				parent[neighbor.Name] = current
 				dist[neighbor.Name] = newdist
+
+				if edge.State != -1 && neighbor.Inpath {
+					queue.Add(Node{Name: neighbor.Name, Priority: newdist})
+					continue
+				}
+
 				queue.Add(Node{Name: neighbor.Name, Priority: newdist})
 			}
+
+			if neighbor.Name == end {
+				return dist, parent
+			}
+
 		}
 
 	}
+
 	return dist, parent
 }

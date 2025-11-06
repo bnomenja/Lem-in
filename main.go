@@ -33,10 +33,4 @@ func main() {
 	}
 
 	functions.MooveAnts(paths, farm.Antnumber, string(data), assigned)
-
-	if functions.HasDuplicateRoomAcrossPaths(paths) {
-		fmt.Println("\nduplicated rooms")
-	}
-
-
 }
