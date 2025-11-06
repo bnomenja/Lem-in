@@ -4,12 +4,12 @@ import (
 	"sort"
 )
 
-func calculateTurns(paths []Path, antNumber int) ([]int, int) {
+func CalculateTurns(paths []Path, antNumber int) ([]int, int) {
 	sort.Slice(paths, func(i, j int) bool {
 		return len(paths[i]) < len(paths[j])
 	})
 
-	assigned := assignAnts(paths, antNumber)
+	assigned := AssignAnts(paths, antNumber)
 
 	maxTurn := 0
 	for i := range paths {
@@ -22,7 +22,7 @@ func calculateTurns(paths []Path, antNumber int) ([]int, int) {
 	return assigned, maxTurn
 }
 
-func assignAnts(paths []Path, antNumber int) []int {
+func AssignAnts(paths []Path, antNumber int) []int {
 	pathLen := make([]int, len(paths))
 
 	for i, path := range paths {
@@ -33,7 +33,7 @@ func assignAnts(paths []Path, antNumber int) []int {
 	antsLeft := antNumber
 
 	for antsLeft > 0 {
-		target := findMinLoadPath(pathLen, assigned)
+		target := FindMinLoadPath(pathLen, assigned)
 		assigned[target]++
 		antsLeft--
 	}
@@ -41,7 +41,7 @@ func assignAnts(paths []Path, antNumber int) []int {
 	return assigned
 }
 
-func findMinLoadPath(pathLen, assigned []int) int {
+func FindMinLoadPath(pathLen, assigned []int) int {
 	target := 0
 	lowest := pathLen[0] + assigned[0]
 

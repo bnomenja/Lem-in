@@ -10,13 +10,6 @@ func MooveAnts(paths []Path, antNumber int, data string, assigned []int) {
 	fmt.Println(strings.TrimSpace(data))
 	fmt.Println("")
 
-	if len(paths[0]) == 1 {
-		for i := 1; i <= antNumber; i++ {
-			fmt.Printf("L%d-%s\n", i, paths[0][0])
-		}
-		return
-	}
-
 	ants := make([]Ant, 0)
 	finished := 0
 	ID := 1

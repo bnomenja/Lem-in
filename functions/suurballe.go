@@ -47,7 +47,7 @@ func MergePaths(farm *Farm, start, end string) []Path {
 	merged := []Path{}
 	for {
 
-		path := dfs(farm, start, end)
+		path := bfs(farm, start, end)
 		if path == nil {
 			break
 		}
@@ -102,8 +102,8 @@ func FindPaths(farm *Farm, start, end string) Path {
 }
 
 func findBetterChoice(best, shortest []Path, antNumber int) ([]Path, []int) {
-	assignedShort, shortTurn := calculateTurns(shortest, antNumber)
-	assigned, turn := calculateTurns(best, antNumber)
+	assignedShort, shortTurn := CalculateTurns(shortest, antNumber)
+	assigned, turn := CalculateTurns(best, antNumber)
 
 	if shortTurn <= turn {
 		return shortest, assignedShort

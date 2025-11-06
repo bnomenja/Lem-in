@@ -4,6 +4,39 @@ import (
 	"math"
 )
 
+func bfs(farm *Farm, start, end string) []string {
+	visited := map[string]bool{start: true}
+	parent := map[string]string{}
+	queue := []string{start}
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		if current == end {
+			return buildPathfromParent(parent, start, end)
+		}
+
+		for _, neighbor := range farm.Rooms[current].Links {
+			if visited[neighbor.Name] {
+				continue
+			}
+
+			edge := farm.Edges[current+"-"+neighbor.Name]
+
+			if edge.State != 0 {
+				continue
+			}
+
+			visited[neighbor.Name] = true
+			parent[neighbor.Name] = current
+			queue = append(queue, neighbor.Name)
+		}
+	}
+
+	return nil
+}
+
 func dfs(farm *Farm, start, end string) []string {
 	current := start
 	path := []string{current}
@@ -38,12 +71,14 @@ func dfs(farm *Farm, start, end string) []string {
 	if path[len(path)-1] != end {
 		return nil
 	}
+
 	return path
 }
 
 func Dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string) {
 	dist := make(map[string]int)
 	parent := make(map[string]string)
+	visited := map[string]bool{}
 
 	for name := range farm.Rooms {
 		dist[name] = math.MaxInt
@@ -61,16 +96,16 @@ func Dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string)
 			continue
 		}
 
+		visited[current] = true
+
 		for _, neighbor := range farm.Rooms[current].Links {
 
 			key := current + "-" + neighbor.Name
 			edge := farm.Edges[key]
 
-			if edge.State == 0 {
-				continue
-			}
-
-			if node.OnlyReverse && edge.State != -1 {
+			if edge.State == 0 ||
+				(node.OnlyReverse && edge.State != -1) ||
+				visited[neighbor.Name] {
 				continue
 			}
 
@@ -80,11 +115,11 @@ func Dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string)
 				dist[neighbor.Name] = newdist
 
 				if edge.State != -1 && neighbor.Inpath {
-					queue.Add(Node{Name: neighbor.Name, Priority: newdist})
+					queue.Add(Node{Name: neighbor.Name, Priority: newdist, OnlyReverse: true})
 					continue
 				}
 
-				queue.Add(Node{Name: neighbor.Name, Priority: newdist})
+				queue.Add(Node{Name: neighbor.Name, Priority: newdist, OnlyReverse: false})
 			}
 
 			if neighbor.Name == end {
