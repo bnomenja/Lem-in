@@ -69,7 +69,7 @@ func dfs(farm *Farm, start, end string) []string {
 	return path
 }
 
-func Dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string) {
+func dijkstra(farm *Farm, start, end string) (map[string]int, map[string]string) {
 	dist := make(map[string]int)
 	parent := make(map[string]string)
 	visited := map[string]bool{}

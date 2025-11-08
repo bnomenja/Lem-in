@@ -10,11 +10,18 @@ import (
 // main reads the input file, validates the farm, finds optimal paths, and simulates ant movements.
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("usage: go run . 'fileName.txt'")
+		fmt.Println("Usage: go run . 'fileName.txt'")
 		return
 	}
 
-	data, err := os.ReadFile(os.Args[1])
+	fileName := os.Args[1]
+
+	if !functions.IsValidFile(fileName) {
+		fmt.Println("only text file are allowed")
+		return
+	}
+
+	data, err := os.ReadFile(fileName)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -26,12 +33,11 @@ func main() {
 		return
 	}
 
-	paths, assigned := functions.Suurballe(&farm)
+	paths, assigned := functions.GetPathsAndDistribute(&farm)
 	if paths == nil {
-		fmt.Println("not solvable")
+		fmt.Println("ERROR: this ant farm cannot be solved")
 		return
 	}
 
 	functions.MooveAnts(paths, farm.Antnumber, string(data), assigned)
-
 }

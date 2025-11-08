@@ -211,3 +211,15 @@ func handleRoomLine(line string, farm *Farm, foundTunnel *bool) (string, bool) {
 
 	return "", true
 }
+
+func IsValidFile(name string) bool {
+	isTextFile := strings.HasSuffix(name, ".txt")
+	isHidden := strings.HasSuffix(name, ".")
+	noName := strings.TrimSpace(strings.TrimSuffix(name, ".txt")) == ""
+
+	if !isTextFile || isHidden || noName {
+		return false
+	}
+
+	return true
+}

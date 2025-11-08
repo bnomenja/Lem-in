@@ -1,26 +1,17 @@
 package functions
 
 import (
-	"fmt"
 	"math"
 )
 
-type Node struct {
-	Name        string
-	Priority    int
-	OnlyReverse bool
-}
-
-type queue []Node
-
-func Suurballe(farm *Farm) ([]Path, []int) {
+func GetPathsAndDistribute(farm *Farm) ([]Path, []int) {
 	start := farm.SpecialRooms["start"]
 	end := farm.SpecialRooms["end"]
 	foundShourtest := false
 	shortest := []Path{}
 
 	for {
-		path := FindPaths(farm, start, end)
+		path := findPaths(farm, start, end)
 		if path == nil {
 			break
 		}
@@ -30,21 +21,21 @@ func Suurballe(farm *Farm) ([]Path, []int) {
 			foundShourtest = true
 		}
 
-		UpdateGraph(farm, path)
+		updateGraph(farm, path)
 	}
 
 	if !foundShourtest {
 		return nil, nil
 	}
 
-	paths := MergePaths(farm, start, end)
+	paths := mergePaths(farm, start, end)
 
 	best, assigned := findBetterChoice(paths, shortest, farm.Antnumber)
 
 	return best, assigned
 }
 
-func MergePaths(farm *Farm, start, end string) []Path {
+func mergePaths(farm *Farm, start, end string) []Path {
 	merged := []Path{}
 	for {
 
@@ -53,14 +44,14 @@ func MergePaths(farm *Farm, start, end string) []Path {
 			break
 		}
 
-		UpdateGraph(farm, path)
+		updateGraph(farm, path)
 
 		merged = append(merged, path[1:])
 	}
 	return merged
 }
 
-func UpdateGraph(farm *Farm, path Path) {
+func updateGraph(farm *Farm, path Path) {
 	for i := range path {
 		if i == len(path)-1 {
 			continue
@@ -116,8 +107,8 @@ func UpdateGraph(farm *Farm, path Path) {
 	}
 }
 
-func FindPaths(farm *Farm, start, end string) Path {
-	dist, parent := Dijkstra(farm, start, end)
+func findPaths(farm *Farm, start, end string) Path {
+	dist, parent := dijkstra(farm, start, end)
 
 	if dist[end] == math.MaxInt {
 		return nil
@@ -128,15 +119,12 @@ func FindPaths(farm *Farm, start, end string) Path {
 }
 
 func findBetterChoice(best, shortest []Path, antNumber int) ([]Path, []int) {
-	assignedShort, shortTurn := CalculateTurns(shortest, antNumber)
-	assigned, turn := CalculateTurns(best, antNumber)
+	assignedShort, shortTurn := calculateTurns(shortest, antNumber)
+	assigned, turn := calculateTurns(best, antNumber)
 
 	if shortTurn <= turn {
-		fmt.Println("turn: ", shortTurn)
 		return shortest, assignedShort
 	}
-
-	fmt.Println("turn: ", turn)
 
 	return best, assigned
 }
