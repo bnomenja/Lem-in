@@ -1,6 +1,7 @@
 package functions
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -25,7 +26,7 @@ func Suurballe(farm *Farm) ([]Path, []int) {
 		}
 
 		if !foundShourtest {
-			shortest = append(shortest, path)
+			shortest = append(shortest, path[1:])
 			foundShourtest = true
 		}
 
@@ -47,7 +48,7 @@ func MergePaths(farm *Farm, start, end string) []Path {
 	merged := []Path{}
 	for {
 
-		path := bfs(farm, start, end)
+		path := dfs(farm, start, end)
 		if path == nil {
 			break
 		}
@@ -117,7 +118,7 @@ func UpdateGraph(farm *Farm, path Path) {
 
 func FindPaths(farm *Farm, start, end string) Path {
 	dist, parent := Dijkstra(farm, start, end)
-	
+
 	if dist[end] == math.MaxInt {
 		return nil
 	}
@@ -131,8 +132,11 @@ func findBetterChoice(best, shortest []Path, antNumber int) ([]Path, []int) {
 	assigned, turn := CalculateTurns(best, antNumber)
 
 	if shortTurn <= turn {
+		fmt.Println("turn: ", shortTurn)
 		return shortest, assignedShort
 	}
+
+	fmt.Println("turn: ", turn)
 
 	return best, assigned
 }

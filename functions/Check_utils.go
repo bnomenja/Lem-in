@@ -25,7 +25,7 @@ type Path []string
 type Room struct {
 	Name   string
 	Coord  Position
-	Links  map[string]*Room
+	Links  []*Room
 	Inpath bool
 }
 
@@ -91,7 +91,7 @@ func addRoomToFarm(farm *Farm, name string, x, y int) error {
 	room := &Room{
 		Name:  name,
 		Coord: Position{X: x, Y: y},
-		Links: make(map[string]*Room),
+		Links: []*Room{},
 	}
 
 	farm.Rooms[name] = room
@@ -148,8 +148,8 @@ func addTunnelToFarm(farm *Farm, from, to, line string) error {
 	}
 
 	farm.Tunnels[k1] = true
-	rA.Links[to] = rB
-	rB.Links[from] = rA
+	rA.Links = append(rA.Links, rB)
+	rB.Links = append(rB.Links, rA)
 
 	farm.Edges[k1] = Edge{
 		From:  from,
